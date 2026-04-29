@@ -1,0 +1,152 @@
+﻿@model CalendarAppointmentApp.ViewModels.AddAppointmentViewModel
+
+@{
+    ViewData["Title"] = "Thêm lịch hẹn";
+}
+
+<div class="page-center">
+    <div class="modern-form-card">
+        <div class="form-title">
+            <h1>Thêm lịch hẹn</h1>
+            <p>Nhập thông tin lịch hẹn mới của bạn.</p>
+        </div>
+
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert warning">@TempData["Warning"]</div>
+        }
+
+        @if (TempData["Question"] != null)
+        {
+            <div class="alert info">@TempData["Question"]</div>
+        }
+
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <input type="hidden" asp-for="ConflictAppointmentId" />
+            <input type="hidden" asp-for="MatchingGroupMeetingId" />
+
+            <!-- NAME -->
+            <div class="form-group">
+                <label asp-for="Name">Tên lịch hẹn</label>
+                <input asp-for="Name" class="form-control" placeholder="VD: Sprint Planning" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <!-- LOCATION -->
+            <div class="form-group">
+                <label asp-for="Location">Địa điểm</label>
+                <input asp-for="Location" class="form-control" placeholder="VD: Phòng họp A" />
+                <span asp-validation-for="Location" class="text-danger"></span>
+            </div>
+
+            <!-- DATETIME -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Thời gian bắt đầu</label>
+                    <input name="StartTime"
+                           type="datetime-local"
+                           class="form-control"
+                           value="@Model.StartTime.ToString("yyyy-MM-ddTHH:mm")" />
+                </div>
+
+                <div class="form-group">
+                    <label>Thời gian kết thúc</label>
+                    <input name="EndTime"
+                           type="datetime-local"
+                           class="form-control"
+                           value="@Model.EndTime.ToString("yyyy-MM-ddTHH:mm")" />
+                </div>
+            </div>
+
+            <!-- REMINDER -->
+            <div class="checkbox-card">
+                <input asp-for="HasReminder" />
+                <label asp-for="HasReminder">Thêm lời nhắc cho lịch hẹn</label>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Thời gian nhắc</label>
+                    <input name="ReminderTime"
+                           type="datetime-local"
+                           class="form-control"
+                           value="@(Model.ReminderTime.HasValue? Model.ReminderTime.Value.ToString("yyyy-MM-ddTHH:mm") : "")" />
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="ReminderMessage">Nội dung nhắc</label>
+                    <input asp-for="ReminderMessage" class="form-control" placeholder="VD: Chuẩn bị tài liệu" />
+                </div>
+            </div>
+
+            <!-- CONFLICT -->
+            @if (Model.ConflictAppointmentId != null)
+            {
+                <div class="checkbox-card warning-box">
+                    <input asp-for="ReplaceOldAppointment" />
+                    <label asp-for="ReplaceOldAppointment">Thay thế lịch hẹn cũ</label>
+                </div>
+            }
+
+            @if (Model.MatchingGroupMeetingId != null)
+            {
+                <div class="meeting-confirm-box">
+                    <div class="meeting-icon">👥</div>
+
+                    <div class="meeting-content">
+                        <h3>Phát hiện cuộc họp nhóm</h3>
+                        <p>
+                            Có cuộc họp nhóm trùng với thông tin bạn nhập.
+                            Bạn có muốn tham gia cuộc họp nhóm này không?
+                        </p>
+
+                        <div class="meeting-summary">
+                            <div>
+                                <span>Tên lịch hẹn</span>
+                                <strong>@Model.Name</strong>
+                            </div>
+
+                            <div>
+                                <span>Bắt đầu</span>
+                                <strong>@Model.StartTime.ToString("dd/MM/yyyy HH:mm")</strong>
+                            </div>
+
+                            <div>
+                                <span>Kết thúc</span>
+                                <strong>@Model.EndTime.ToString("dd/MM/yyyy HH:mm")</strong>
+                            </div>
+                        </div>
+
+                        <div class="meeting-actions">
+                            <button type="submit"
+                                    name="JoinGroupMeeting"
+                                    value="true"
+                                    class="btn-join">
+                                Đồng ý tham gia
+                            </button>
+
+                            <button type="submit"
+                                    name="JoinGroupMeeting"
+                                    value="false"
+                                    class="btn-skip">
+                                Không, tạo lịch hẹn riêng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- ACTION -->
+            <div class="form-actions">
+                <button type="submit" class="btn-dark">Lưu lịch hẹn</button>
+                <a asp-action="Index" class="btn-light">Quay lại</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

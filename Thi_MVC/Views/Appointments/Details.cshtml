@@ -1,0 +1,61 @@
+﻿@model CalendarAppointmentApp.Models.Appointment
+
+@{
+    ViewData["Title"] = "Chi tiết lịch hẹn";
+}
+
+<div class="details-wrapper">
+
+    <div class="details-card">
+
+        <div class="details-header">
+            <span class="badge">Chi tiết lịch hẹn</span>
+            <h1>@Model.Name</h1>
+        </div>
+
+        <div class="details-info">
+            <div class="info-item">
+                <span>Địa điểm</span>
+                <strong>@Model.Location</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Bắt đầu</span>
+                <strong>@Model.StartTime.ToString("dd/MM/yyyy HH:mm")</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Kết thúc</span>
+                <strong>@Model.EndTime.ToString("dd/MM/yyyy HH:mm")</strong>
+            </div>
+
+            <div class="info-item">
+                <span>Thời lượng</span>
+                <strong>@Model.GetDuration() phút</strong>
+            </div>
+        </div>
+
+        <div class="details-reminder">
+            <h3>Lời nhắc</h3>
+
+            @if (Model.Reminders != null && Model.Reminders.Any())
+            {
+                @foreach (var r in Model.Reminders)
+                {
+                    <div class="reminder-box">
+                        <strong>@r.Time.ToString("dd/MM/yyyy HH:mm")</strong>
+                        <div>@r.Message</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="empty-text">Không có lời nhắc.</p>
+            }
+        </div>
+
+        <a asp-action="Index" class="btn-back">Quay lại lịch</a>
+
+    </div>
+
+</div>

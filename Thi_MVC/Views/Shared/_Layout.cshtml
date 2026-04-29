@@ -1,0 +1,30 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - Calendar Appointment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="app-navbar">
+        <div class="nav-left">
+            <a asp-controller="Appointments" asp-action="Index" class="nav-logo">
+                <span class="logo-icon">📅</span>
+                <span>Calendar Appointment</span>
+            </a>
+        </div>
+
+        <nav class="nav-menu">
+            <a asp-controller="Appointments" asp-action="Index">Lịch tháng</a>
+        </nav>
+    </header>
+
+    <main class="app-main">
+        @RenderBody()
+    </main>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
