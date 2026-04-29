@@ -475,3 +475,16 @@ body {
         flex-direction: column;
     }
 }
+.validation-box {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+    .validation-box ul {
+        margin: 0;
+        padding-left: 20px;
+    }

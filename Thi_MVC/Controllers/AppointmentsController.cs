@@ -91,14 +91,36 @@ public class AppointmentsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(AddAppointmentViewModel vm)
     {
-        if (vm.EndTime <= vm.StartTime)
+        var now = DateTime.Now;
+
+        if (vm.StartTime < now)
         {
-            ModelState.AddModelError("", "Thời gian kết thúc phải lớn hơn thời gian bắt đầu.");
+            ModelState.AddModelError("StartTime", "Không được đặt lịch hẹn trong quá khứ.");
         }
 
-        if (vm.HasReminder && vm.ReminderTime == null)
+        if (vm.EndTime <= vm.StartTime)
         {
-            ModelState.AddModelError("", "Vui lòng chọn thời gian nhắc nhở.");
+            ModelState.AddModelError("EndTime", "Thời gian kết thúc phải lớn hơn thời gian bắt đầu.");
+        }
+
+        if (vm.HasReminder)
+        {
+            if (vm.ReminderTime == null)
+            {
+                ModelState.AddModelError("ReminderTime", "Vui lòng chọn thời gian nhắc.");
+            }
+            else
+            {
+                if (vm.ReminderTime.Value < now)
+                {
+                    ModelState.AddModelError("ReminderTime", "Thời gian nhắc không được ở quá khứ.");
+                }
+
+                if (vm.ReminderTime.Value > vm.StartTime)
+                {
+                    ModelState.AddModelError("ReminderTime", "Thời gian nhắc phải trước hoặc bằng thời gian bắt đầu cuộc hẹn.");
+                }
+            }
         }
 
         if (!ModelState.IsValid)

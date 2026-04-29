@@ -6,11 +6,14 @@
 
 <div class="page-center">
     <div class="modern-form-card">
+
+        <!-- TITLE -->
         <div class="form-title">
             <h1>Thêm lịch hẹn</h1>
             <p>Nhập thông tin lịch hẹn mới của bạn.</p>
         </div>
 
+        <!-- ALERT -->
         @if (TempData["Warning"] != null)
         {
             <div class="alert warning">@TempData["Warning"]</div>
@@ -21,8 +24,11 @@
             <div class="alert info">@TempData["Question"]</div>
         }
 
+        <!-- FORM -->
         <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- 🔥 HIỆN TOÀN BỘ LỖI -->
+            <div asp-validation-summary="All" class="validation-box"></div>
 
             <input type="hidden" asp-for="ConflictAppointmentId" />
             <input type="hidden" asp-for="MatchingGroupMeetingId" />
@@ -43,12 +49,14 @@
 
             <!-- DATETIME -->
             <div class="form-row">
+
                 <div class="form-group">
                     <label>Thời gian bắt đầu</label>
                     <input name="StartTime"
                            type="datetime-local"
                            class="form-control"
                            value="@Model.StartTime.ToString("yyyy-MM-ddTHH:mm")" />
+                    <span asp-validation-for="StartTime" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
@@ -57,7 +65,9 @@
                            type="datetime-local"
                            class="form-control"
                            value="@Model.EndTime.ToString("yyyy-MM-ddTHH:mm")" />
+                    <span asp-validation-for="EndTime" class="text-danger"></span>
                 </div>
+
             </div>
 
             <!-- REMINDER -->
@@ -67,18 +77,21 @@
             </div>
 
             <div class="form-row">
+
                 <div class="form-group">
                     <label>Thời gian nhắc</label>
                     <input name="ReminderTime"
                            type="datetime-local"
                            class="form-control"
                            value="@(Model.ReminderTime.HasValue? Model.ReminderTime.Value.ToString("yyyy-MM-ddTHH:mm") : "")" />
+                    <span asp-validation-for="ReminderTime" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="ReminderMessage">Nội dung nhắc</label>
                     <input asp-for="ReminderMessage" class="form-control" placeholder="VD: Chuẩn bị tài liệu" />
                 </div>
+
             </div>
 
             <!-- CONFLICT -->
@@ -86,25 +99,31 @@
             {
                 <div class="checkbox-card warning-box">
                     <input asp-for="ReplaceOldAppointment" />
-                    <label asp-for="ReplaceOldAppointment">Thay thế lịch hẹn cũ</label>
+                    <label asp-for="ReplaceOldAppointment">
+                        Thay thế lịch hẹn cũ
+                    </label>
                 </div>
             }
 
+            <!-- GROUP MEETING -->
             @if (Model.MatchingGroupMeetingId != null)
             {
                 <div class="meeting-confirm-box">
+
                     <div class="meeting-icon">👥</div>
 
                     <div class="meeting-content">
                         <h3>Phát hiện cuộc họp nhóm</h3>
+
                         <p>
                             Có cuộc họp nhóm trùng với thông tin bạn nhập.
-                            Bạn có muốn tham gia cuộc họp nhóm này không?
+                            Bạn có muốn tham gia không?
                         </p>
 
                         <div class="meeting-summary">
+
                             <div>
-                                <span>Tên lịch hẹn</span>
+                                <span>Tên</span>
                                 <strong>@Model.Name</strong>
                             </div>
 
@@ -117,9 +136,11 @@
                                 <span>Kết thúc</span>
                                 <strong>@Model.EndTime.ToString("dd/MM/yyyy HH:mm")</strong>
                             </div>
+
                         </div>
 
                         <div class="meeting-actions">
+
                             <button type="submit"
                                     name="JoinGroupMeeting"
                                     value="true"
@@ -131,8 +152,9 @@
                                     name="JoinGroupMeeting"
                                     value="false"
                                     class="btn-skip">
-                                Không, tạo lịch hẹn riêng
+                                Tạo lịch riêng
                             </button>
+
                         </div>
                     </div>
                 </div>
@@ -140,9 +162,15 @@
 
             <!-- ACTION -->
             <div class="form-actions">
-                <button type="submit" class="btn-dark">Lưu lịch hẹn</button>
-                <a asp-action="Index" class="btn-light">Quay lại</a>
+                <button type="submit" class="btn-dark">
+                    Lưu lịch hẹn
+                </button>
+
+                <a asp-action="Index" class="btn-light">
+                    Quay lại
+                </a>
             </div>
+
         </form>
     </div>
 </div>
