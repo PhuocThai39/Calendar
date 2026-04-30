@@ -2,8 +2,8 @@
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
-    <title>@ViewData["Title"] - Calendar Appointment</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Calendar App</title>
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
@@ -11,20 +11,126 @@
     <header class="app-navbar">
         <div class="nav-left">
             <a asp-controller="Appointments" asp-action="Index" class="nav-logo">
-                <span class="logo-icon">📅</span>
-                <span>Calendar Appointment</span>
+                <span class="logo-icon" style="margin-right: 8px;">📅</span>
+                <span>Calendar App</span>
             </a>
         </div>
 
-        <nav class="nav-menu">
-            <a asp-controller="Appointments" asp-action="Index">Lịch tháng</a>
+        <nav class="nav-menu" style="display: flex; align-items: center; gap: 20px;">
+            
+            <!-- LUÔN HIỂN THỊ: Lịch tháng (Ai cũng xem được) -->
+            <a asp-controller="Appointments" asp-action="Index" style="text-decoration: none; color: #333; font-weight: 500;">📅 Lịch tháng</a>
+
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                var username = User.Identity.Name;
+                // Tìm cái Tên hiển thị (Name) đã lưu ở bước 1, nếu không có thì lấy tạm username
+                var displayName = User.FindFirst("DisplayName")?.Value ?? username;
+
+                <a asp-controller="Appointments" asp-action="Notifications" style="text-decoration: none; color: #333; font-weight: 500; position: relative;">
+                    🔔 Thông báo
+                </a>
+
+                <a asp-controller="Appointments" asp-action="List" style="text-decoration: none; color: #333; font-weight: 500;">📋 Danh sách lịch đã hẹn</a>
+
+                <!-- KHỐI THÔNG TIN NGƯỜI DÙNG & ĐĂNG XUẤT -->
+                <div style="border-left: 2px solid #eee; padding-left: 20px; margin-left: 10px; display: flex; align-items: center; gap: 15px;">
+                    
+                    <!-- BỐ CỤC: TÊN TO ĐẬM Ở TRÊN, USERNAME NHỎ NHẠT Ở DƯỚI -->
+                    <div style="text-align: right; line-height: 1.2;">
+                        <div style="font-weight: 700; color: #212529; font-size: 15px;">@displayName</div>
+                        <div style="color: #6c757d; font-size: 12px;">@@@username</div>
+                    </div>
+
+                    <a asp-controller="Account" asp-action="Logout" style="padding: 8px 16px; background-color: #fff0f0; color: #dc3545; border: 1px solid #ffcaca; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; transition: 0.2s;">
+                        Đăng xuất
+                    </a>
+                </div>
+            }
+            else
+            {
+                <!-- NẾU CHƯA ĐĂNG NHẬP: Hiển thị nút Đăng nhập ở góc phải -->
+                <div style="border-left: 2px solid #eee; padding-left: 20px; margin-left: 10px;">
+                    <a asp-controller="Account" asp-action="Login" style="padding: 8px 16px; background-color: #f0f8ff; color: #0d6efd; border: 1px solid #c6e2ff; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; transition: 0.2s;">
+                        Đăng nhập
+                    </a>
+                </div>
+            }
         </nav>
     </header>
 
-    <main class="app-main">
+    <main class="app-main" style="min-height: 80vh; padding: 20px; max-width: 1200px; margin: 0 auto;">
         @RenderBody()
     </main>
 
+    <footer class="app-footer" style="text-align: center; padding: 20px; color: #888; border-top: 1px solid #eee; margin-top: 40px;">
+        <p>&copy; @DateTime.Now.Year - Calendar Appointment App</p> 
+    </footer>
+
     @await RenderSectionAsync("Scripts", required: false)
+
+    @if (TempData["Success"] != null)
+    {
+        <div id="global-toast" class="custom-toast success-toast">
+            <span style="font-size: 18px;">✅</span>
+            <span>@TempData["Success"]</span>
+        </div>
+    }
+
+    <style>
+            .custom-toast {
+                position: fixed;
+                top: 80px; /* Nằm dưới thanh Menu một chút */
+                right: 20px;
+                background-color: #fff;
+                color: #155724;
+                border-left: 5px solid #28a745;
+                padding: 15px 25px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-weight: 500;
+                z-index: 9999;
+                /* Hiệu ứng trượt từ phải vào */
+                transform: translateX(150%);
+                animation: slideIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+            }
+
+                .custom-toast.hide {
+                    animation: slideOut 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+                }
+
+            @@keyframes slideIn {
+                100% {
+                    transform: translateX(0);
+                }
+            }
+
+            @@keyframes slideOut {
+                100% {
+                    transform: translateX(150%);
+                    opacity: 0;
+                }
+            }
+    </style>
+
+    <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                var toast = document.getElementById("global-toast");
+                if (toast) {
+                    // Sau 3 giây (3000 mili-giây) thì kích hoạt hiệu ứng trượt ra ngoài
+                    setTimeout(function () {
+                        toast.classList.add("hide");
+                    
+                        // Đợi thêm 0.5s cho hiệu ứng chạy xong thì xóa hẳn thẻ HTML khỏi trang
+                        setTimeout(function () {
+                            toast.remove();
+                        }, 500);
+                    }, 3000);
+                }
+            });
+    </script>
 </body>
 </html>

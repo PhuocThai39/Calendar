@@ -474,4 +474,241 @@ body {
     .meeting-actions {
         flex-direction: column;
     }
+
+
+}
+
+/* Làm mờ các ngày không thuộc tháng hiện tại (tháng trước/tháng sau) */
+.calendar-day.muted-day {
+    background-color: #f8f9fa; /* Nền xám nhạt để chìm xuống */
+    opacity: 0.6; /* Giảm độ rõ nét của toàn bộ ô */
+}
+
+    /* Chuyển màu chữ của số ngày thành màu xám nhạt */
+    .calendar-day.muted-day .day-number {
+        color: #adb5bd;
+    }
+
+    /* Tùy chọn: Làm mờ luôn cả các sự kiện (event) nếu nó lọt vào ngày của tháng khác */
+    .calendar-day.muted-day .day-events {
+        opacity: 0.7;
+        pointer-events: none; /* Ngăn người dùng click vào event của tháng khác nếu muốn */
+    }
+
+/* 1. HIỆU ỨNG NÚT "THÊM LỊCH HẸN" */
+.add-btn {
+    cursor: pointer; /* Đổi con trỏ chuột thành hình bàn tay chỉ vào */
+    transition: background-color 0.3s ease, opacity 0.3s ease; /* Tạo hiệu ứng chuyển màu mượt mà */
+}
+
+    /* Khi đưa chuột vào sẽ đổi sang màu xám mờ */
+    .add-btn:hover {
+        background-color: #555555 !important; /* Đổi nền thành màu xám */
+        opacity: 0.9;
+    }
+
+
+/* 2. ĐÁNH DẤU "NGÀY HÔM NAY" TRONG LỊCH */
+.calendar-day.today-highlight {
+    background-color: #e6f2ff; /* Đổi màu nền của ô thành xanh dương nhạt */
+    border: 2px solid #0d6efd; /* Thêm viền xanh đậm để nổi bật hẳn lên */
+    box-shadow: inset 0 0 5px rgba(13, 110, 253, 0.2);
+}
+
+    .calendar-day.today-highlight .day-number {
+        color: #0d6efd; /* Đổi màu số ngày thành xanh đậm */
+        font-weight: 800; /* Làm đậm số ngày */
+        background: #fff; /* Tạo một vòng tròn trắng bo quanh số (tùy chọn) */
+        border-radius: 50%;
+        padding: 2px 6px;
+    }
+
+/* Nút Hôm nay */
+.btn-today {
+    padding: 8px 16px;
+    background-color: #fff;
+    color: #333;
+    border: 1px solid #dcdfe6;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+    .btn-today:hover {
+        background-color: #f2f6fc;
+        color: #0d6efd; /* Đổi chữ sang màu xanh khi hover */
+        border-color: #c6e2ff;
+    }
+
+/* Nút mũi tên Trái/Phải dạng tròn */
+.nav-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background-color: #fff;
+    color: #606266;
+    border: 1px solid #dcdfe6;
+    border-radius: 50%; /* Bo thành hình tròn hoàn hảo */
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+    .nav-icon-btn:hover {
+        background-color: #f2f6fc;
+        color: #0d6efd;
+        border-color: #c6e2ff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Thêm hiệu ứng nổi nhẹ */
+    }
+
+/* Định dạng lại ô chọn Tháng/Năm cho đồng bộ */
+.custom-select {
+    padding: 8px 12px;
+    border: 1px solid #dcdfe6;
+    border-radius: 6px;
+    background-color: #fff;
+    color: #333;
+    outline: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+    .custom-select:hover {
+        border-color: #c0c4cc;
+    }
+
+/* Container và Card */
+.details-container {
+    max-width: 600px;
+    margin: 40px auto;
+}
+
+.details-card-modern {
+    background: #fff;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* Badge Styling */
+.badge-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.badge-type {
+    background: #333;
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.badge-status.status-upcoming {
+    background: #e6fcf5;
+    color: #0ca678;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.badge-status.status-past {
+    background: #f8f9fa;
+    color: #868e96;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* Typography */
+.appointment-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin-bottom: 25px;
+}
+
+/* Info Blocks */
+.info-block {
+    background: #fdfdfd;
+    border: 1px solid #f0f0f0;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+    .info-block label {
+        display: block;
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 5px;
+    }
+
+    .info-block .info-value {
+        font-weight: 600;
+        color: #333;
+    }
+
+/* Action Buttons */
+.details-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-warning-custom {
+    background: #ffec99;
+    color: #f08c00;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: 0.2s;
+}
+
+    .btn-warning-custom:hover {
+        background: #ffe066;
+    }
+
+.btn-danger-custom {
+    background: #ffc9c9;
+    color: #fa5252;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+    .btn-danger-custom:hover {
+        background: #ffb3b3;
+    }
+
+.btn-light-custom {
+    background: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
 }

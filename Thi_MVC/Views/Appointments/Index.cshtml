@@ -7,27 +7,26 @@
 
 <div class="calendar-shell">
 
-    <!-- HEADER -->
     <div class="calendar-header">
         <div>
-            <h1>THÁNG @Model.Month @Model.Year</h1>
+            <h1>@Model.Title.ToUpper()</h1>
             <p>Quản lý lịch hẹn theo tháng</p>
         </div>
 
-        <div class="calendar-actions">
+        <div class="calendar-actions" style="display: flex; align-items: center; gap: 12px;">
+            
+            <a asp-action="Index" class="btn-today">Hôm nay</a>
 
-            <!-- PREVIOUS -->
-            <a class="nav-btn"
+            <a class="nav-icon-btn"
                    asp-action="Index"
                    asp-route-month="@Model.PreviousMonth.Month"
-                   asp-route-year="@Model.PreviousMonth.Year">
-                ‹
+                   asp-route-year="@Model.PreviousMonth.Year"
+                   title="Tháng trước">
+                &#10094;
             </a>
 
-            <!-- SELECT MONTH YEAR -->
-            <form asp-action="Index" method="get" class="month-form">
-
-                <select name="month">
+            <form asp-action="Index" method="get" class="month-form" style="display: flex; gap: 8px; margin: 0;">
+                <select name="month" onchange="this.form.submit()" class="custom-select">
                     @for (int m = 1; m <= 12; m++)
                     {
                         if (m == Model.Month)
@@ -41,7 +40,7 @@
                     }
                 </select>
 
-                <select name="year">
+                <select name="year" onchange="this.form.submit()" class="custom-select">
                     @for (int y = DateTime.Today.Year - 5; y <= DateTime.Today.Year + 5; y++)
                     {
                         if (y == Model.Year)
@@ -54,33 +53,23 @@
                         }
                     }
                 </select>
-
-                <button type="submit">Xem</button>
             </form>
 
-            <!-- NEXT -->
-            <a class="nav-btn"
+            <a class="nav-icon-btn"
                    asp-action="Index"
                    asp-route-month="@Model.NextMonth.Month"
-                   asp-route-year="@Model.NextMonth.Year">
-                ›
+                   asp-route-year="@Model.NextMonth.Year"
+                   title="Tháng sau">
+                &#10095;
             </a>
 
-            <!-- CREATE -->
-            <a asp-action="Create" class="add-btn">
+            <a asp-action="Create" class="add-btn" style="margin-left: 10px;">
                 + Thêm lịch hẹn
             </a>
 
         </div>
     </div>
 
-    <!-- SUCCESS MESSAGE -->
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert success">@TempData["Success"]</div>
-    }
-
-    <!-- WEEKDAYS -->
     <div class="calendar-weekdays">
         @foreach (var day in dayNames)
         {
@@ -88,25 +77,30 @@
         }
     </div>
 
-    <!-- GRID -->
     <div class="calendar-grid-month">
         @foreach (var day in Model.Days)
         {
-            <div class="calendar-day @(day.IsCurrentMonth ? "" : "muted-day")">
+            <div class="calendar-day @(day.IsCurrentMonth ? "" : "muted-day") @(day.IsToday ? "today-highlight" : "")">
 
-                <!-- DAY NUMBER -->
                 <div class="day-number">@day.Date.Day.ToString("00")</div>
 
-                <!-- EVENTS -->
                 <div class="day-events">
 
                     @foreach (var appointment in day.Appointments.Take(3))
                     {
+                        @* ĐÃ THÊM: asp-route-isGroup để truyền sang hàm Details *@
                         <a asp-action="Details"
                                asp-route-id="@appointment.Id"
+                               asp-route-isGroup="@appointment.IsGroupMeeting"
                                class="event-pill @GetEventClass(appointment.Id)">
 
                             <span>@appointment.StartTime.ToString("HH:mm")</span>
+                            
+                            @* ĐÃ THÊM: Icon nhận diện họp nhóm *@
+                            @if (appointment.IsGroupMeeting)
+                            {
+                                <span title="Họp nhóm" style="margin-right: 3px;">👥</span>
+                            }
                             @appointment.Name
                         </a>
                     }

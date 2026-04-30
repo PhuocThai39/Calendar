@@ -1,0 +1,66 @@
+﻿@* ĐÃ SỬA: Đổi Model sang ViewModel mới *@
+@model IEnumerable<CalendarAppointmentApp.ViewModels.AppointmentListViewModel>
+
+@{
+    ViewData["Title"] = "Danh sách lịch đã hẹn";
+}
+<div class="page-center" style="max-width: 1000px; margin: 0 auto;">
+    <div class="modern-form-card" style="padding: 30px; background: #fff; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        
+        <div class="form-title" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h1 style="margin: 0;">Danh sách lịch hẹn</h1>
+                <p style="color: #666; margin-top: 5px;">Toàn bộ thông tin các cuộc hẹn bạn đã đặt.</p>
+            </div>
+            
+            <a asp-action="Create" style="display: inline-block; padding: 8px 16px; background-color: #212529; color: #fff; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; white-space: nowrap; height: fit-content; transition: 0.2s;">
+                + Thêm lịch hẹn
+            </a>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa; text-align: left;">
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Tên lịch hẹn</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Phân loại</th> @* ĐÃ THÊM CỘT NÀY *@
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Địa điểm</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Bắt đầu</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Kết thúc</th>
+                    <th style="padding: 12px; border-bottom: 2px solid #ddd;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 30px; color: #888;">Bạn chưa có lịch hẹn nào.</td>
+                    </tr>
+                }
+                
+                @foreach (var item in Model)
+                {
+                    <tr style="border-bottom: 1px solid #eee; transition: background 0.2s;">
+                        <td style="padding: 12px; font-weight: bold; color: #333;">@item.Name</td>
+                        <td style="padding: 12px;">
+                            @* ĐÃ THÊM: Huy hiệu Phân loại *@
+                            @if (item.IsGroupMeeting)
+                            {
+                                <span style="background: #e0f2fe; color: #0284c7; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space:nowrap;">👥 Họp nhóm</span>
+                            }
+                            else
+                            {
+                                <span style="background: #f3f4f6; color: #4b5563; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space:nowrap;">👤 Cá nhân</span>
+                            }
+                        </td>
+                        <td style="padding: 12px; color: #666;">@item.Location</td>
+                        <td style="padding: 12px; color: #666;">@item.StartTime.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td style="padding: 12px; color: #666;">@item.EndTime.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td style="padding: 12px;">
+                            <a asp-action="Details" asp-route-id="@item.Id" asp-route-isGroup="@item.IsGroupMeeting" style="color: #0d6efd; text-decoration: none; font-weight: 500;">Xem chi tiết</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

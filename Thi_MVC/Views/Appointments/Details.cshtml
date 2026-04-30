@@ -1,61 +1,125 @@
-﻿@model CalendarAppointmentApp.Models.Appointment
+﻿@* ĐÃ SỬA: Đổi Model sang ViewModel mới *@
+@model CalendarAppointmentApp.ViewModels.AppointmentListViewModel
 
 @{
     ViewData["Title"] = "Chi tiết lịch hẹn";
+    bool isPast = Model.EndTime < DateTime.Now;
+    string statusText = isPast ? "Đã kết thúc" : "Sắp diễn ra";
+    string statusBadgeClass = isPast ? "status-past" : "status-upcoming";
 }
-
-<div class="details-wrapper">
-
-    <div class="details-card">
-
-        <div class="details-header">
-            <span class="badge">Chi tiết lịch hẹn</span>
-            <h1>@Model.Name</h1>
-        </div>
-
-        <div class="details-info">
-            <div class="info-item">
-                <span>Địa điểm</span>
-                <strong>@Model.Location</strong>
-            </div>
-
-            <div class="info-item">
-                <span>Bắt đầu</span>
-                <strong>@Model.StartTime.ToString("dd/MM/yyyy HH:mm")</strong>
-            </div>
-
-            <div class="info-item">
-                <span>Kết thúc</span>
-                <strong>@Model.EndTime.ToString("dd/MM/yyyy HH:mm")</strong>
-            </div>
-
-            <div class="info-item">
-                <span>Thời lượng</span>
-                <strong>@Model.GetDuration() phút</strong>
-            </div>
-        </div>
-
-        <div class="details-reminder">
-            <h3>Lời nhắc</h3>
-
-            @if (Model.Reminders != null && Model.Reminders.Any())
-            {
-                @foreach (var r in Model.Reminders)
+<div class="details-container">
+    <div class="details-card-modern">
+        
+        <div class="details-header-section">
+            <div class="badge-group">
+                <span class="badge-type">CHI TIẾT LỊCH HẸN</span>
+                <span class="badge-status @statusBadgeClass">@statusText</span>
+                
+                @* ĐÃ THÊM: Huy hiệu Phân loại ở trang chi tiết *@
+                @if (Model.IsGroupMeeting)
                 {
-                    <div class="reminder-box">
-                        <strong>@r.Time.ToString("dd/MM/yyyy HH:mm")</strong>
-                        <div>@r.Message</div>
-                    </div>
+                    <span style="background: #e0f2fe; color: #0284c7; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-left: 10px;">👥 Cuộc họp nhóm</span>
                 }
-            }
-            else
-            {
-                <p class="empty-text">Không có lời nhắc.</p>
-            }
+                else
+                {
+                    <span style="background: #f3f4f6; color: #4b5563; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-left: 10px;">👤 Lịch cá nhân</span>
+                }
+            </div>
+            <h1 class="appointment-title">@Model.Name</h1>
         </div>
 
-        <a asp-action="Index" class="btn-back">Quay lại lịch</a>
+        <div class="info-grid">
+            <div class="info-block">
+                <label>Địa điểm</label>
+                <div class="info-value">@Model.Location</div>
+            </div>
+            <div class="info-block">
+                <label>Bắt đầu</label>
+                <div class="info-value">@Model.StartTime.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+            <div class="info-block">
+                <label>Kết thúc</label>
+                <div class="info-value">@Model.EndTime.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+            <div class="info-block">
+                <label>Thời lượng</label>
+                <div class="info-value">@Model.DurationInMinutes phút</div>
+            </div>
+        </div>
 
+        @if (!Model.IsGroupMeeting)
+        {
+            <!-- LỊCH CÁ NHÂN: Hiển thị Lời nhắc -->
+            <div class="reminder-section">
+                <h3 class="section-subtitle">Lời nhắc</h3>
+                @if (Model.ReminderMessages != null && Model.ReminderMessages.Any())
+                {
+                    foreach (var msg in Model.ReminderMessages)
+                    {
+                        <div class="reminder-item">
+                            <span class="reminder-time">🔔</span>
+                            <p class="reminder-msg">@msg</p>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="no-data">Không có lời nhắc.</p>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- LỊCH NHÓM: Hiển thị Danh sách thành viên -->
+            <div class="participants-section" style="margin-top: 25px;">
+                <h3 class="section-subtitle" style="font-size: 16px; color: #495057; margin-bottom: 15px; border-bottom: 2px solid #f8f9fa; padding-bottom: 8px;">
+                    Thành viên tham gia (@Model.Participants.Count)
+                </h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    @foreach (var user in Model.Participants)
+                    {
+                        <div style="display: flex; align-items: center; background: #f8f9fa; padding: 10px 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                            <!-- Avatar giả lập bằng chữ cái đầu của Tên -->
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 14px; margin-right: 12px;">
+                                @(string.IsNullOrEmpty(user.Name) ? "U" : user.Name.Substring(0, 1).ToUpper())
+                            </div>
+                            
+                            <!-- Bố cục Tên (to đậm) và Username (nhỏ nhạt) -->
+                            <div style="line-height: 1.2;">
+                                <div style="font-weight: 600; color: #212529; font-size: 15px;">@user.Name</div>
+                                <div style="color: #6c757d; font-size: 13px;">@@@user.Username</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="details-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <div class="action-buttons" style="display: flex; gap: 10px;">
+                
+                @* Lưu ý: Hiện tại nút Sửa/Xóa tạm thời chỉ hoạt động với lịch cá nhân. Chúng ta sẽ nâng cấp nó sau. *@
+                <a asp-action="Edit" asp-route-id="@Model.Id" asp-route-isGroup="@Model.IsGroupMeeting" style="background: #ffec99; color: #f08c00; border: none; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                    Chỉnh sửa
+                </a>
+                
+                <form asp-action="Delete"
+                      asp-route-id="@Model.Id"
+                      asp-route-isGroup="@Model.IsGroupMeeting"
+                      method="post"
+                      onsubmit="return confirm('Bạn có chắc chắn muốn xóa lịch này không? @(Model.IsGroupMeeting ? "(Lưu ý: Thao tác này sẽ hủy cuộc họp với tất cả các thành viên trong nhóm)" : "")')">
+                
+                    <button type="submit" style="background: #ffc9c9; color: #fa5252; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer;">
+                        Xóa lịch
+                    </button>
+                </form>
+
+            </div>
+            
+            <a asp-action="Index" style="background: #f8f9fa; color: #495057; border: 1px solid #dee2e6; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                Quay lại lịch
+            </a>
+        </div>
     </div>
-
 </div>

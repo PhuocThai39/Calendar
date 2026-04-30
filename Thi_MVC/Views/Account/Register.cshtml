@@ -1,0 +1,46 @@
+﻿@model CalendarAppointmentApp.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+
+<div style="max-width: 400px; margin: 60px auto; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="margin: 0; color: #212529;">Tạo tài khoản mới</h2>
+    </div>
+
+    <form asp-action="Register" method="post">
+        
+        <!-- ĐÃ ĐIỀU CHỈNH: Đổi thành ModelOnly và bỏ nền đỏ. Nó sẽ ẩn đi, chỉ hiện khi có lỗi server cực nghiêm trọng -->
+        <div asp-validation-summary="ModelOnly" style="color: #dc3545; font-size: 14px; margin-bottom: 15px;"></div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px;">Tên hiển thị</label>
+            <input asp-for="FullName" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px;" />
+            <span asp-validation-for="FullName" style="color: #dc3545; font-size: 13px;"></span>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px;">Tài khoản</label>
+            <input asp-for="Username" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px;" />
+            <span asp-validation-for="Username" style="color: #dc3545; font-size: 13px;"></span>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px;">Mật khẩu</label>
+            <input asp-for="Password" type="password" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px;" />
+            <span asp-validation-for="Password" style="color: #dc3545; font-size: 13px;"></span>
+        </div>
+
+        <div style="margin-bottom: 25px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px;">Xác nhận mật khẩu</label>
+            <input asp-for="ConfirmPassword" type="password" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px;" />
+            <span asp-validation-for="ConfirmPassword" style="color: #dc3545; font-size: 13px;"></span>
+        </div>
+
+        <button type="submit" style="width: 100%; background: #0d6efd; color: #fff; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">Đăng ký</button>
+    </form>
+
+    <div style="text-align: center; margin-top: 20px; font-size: 14px;">
+        Đã có tài khoản? <a asp-action="Login" style="color: #0d6efd; text-decoration: none; font-weight: 600;">Đăng nhập</a>
+    </div>
+</div>

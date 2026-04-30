@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace CalendarAppointmentApp.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class FixDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,6 +20,7 @@ namespace CalendarAppointmentApp.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    Location = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndTime = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -33,7 +36,8 @@ namespace CalendarAppointmentApp.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false)
+                    Username = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -112,7 +116,7 @@ namespace CalendarAppointmentApp.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Time = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    MinutesBefore = table.Column<int>(type: "int", nullable: false),
                     Message = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
                     AppointmentId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -129,18 +133,28 @@ namespace CalendarAppointmentApp.Migrations
 
             migrationBuilder.InsertData(
                 table: "GroupMeetings",
-                columns: new[] { "Id", "EndTime", "Name", "StartTime" },
-                values: new object[] { 1, new DateTime(2026, 5, 1, 10, 0, 0, 0, DateTimeKind.Unspecified), "Sprint Planning", new DateTime(2026, 5, 1, 9, 0, 0, 0, DateTimeKind.Unspecified) });
+                columns: new[] { "Id", "EndTime", "Location", "Name", "StartTime" },
+                values: new object[] { 1, new DateTime(2026, 5, 1, 10, 0, 0, 0, DateTimeKind.Unspecified), null, "Sprint Planning", new DateTime(2026, 5, 1, 9, 0, 0, 0, DateTimeKind.Unspecified) });
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "Name", "PhoneNumber" },
-                values: new object[] { 1, "Demo User", "0123456789" });
+                columns: new[] { "Id", "Name", "Password", "Username" },
+                values: new object[,]
+                {
+                    { 1, "Nguyên Khang", "123", "khang" },
+                    { 2, "Xuân Mạnh", "123", "manh" },
+                    { 3, "Quốc Trung", "123", "trung" }
+                });
 
             migrationBuilder.InsertData(
                 table: "Calendars",
                 columns: new[] { "Id", "UserId" },
-                values: new object[] { 1, 1 });
+                values: new object[,]
+                {
+                    { 1, 1 },
+                    { 2, 2 },
+                    { 3, 3 }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Appointments_CalendarId",
@@ -162,6 +176,12 @@ namespace CalendarAppointmentApp.Migrations
                 name: "IX_Reminders_AppointmentId",
                 table: "Reminders",
                 column: "AppointmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Username",
+                table: "Users",
+                column: "Username",
+                unique: true);
         }
 
         /// <inheritdoc />

@@ -26,41 +26,49 @@
 
             <input type="hidden" asp-for="ConflictAppointmentId" />
             <input type="hidden" asp-for="MatchingGroupMeetingId" />
+            <input type="hidden" asp-for="ConflictGroupMeetingName" />
 
-            <!-- NAME -->
+            <!-- ĐÃ THÊM: Khu vực chọn loại lịch hẹn (Radio Buttons) -->
+            <div class="form-group" style="margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #495057;">Phân loại lịch hẹn:</label>
+                <div style="display: flex; gap: 20px;">
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                        <input type="radio" asp-for="IsStartNewGroupMeeting" value="false" checked />
+                        <span>👤 Lịch cá nhân</span>
+                    </label>
+                    <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                        <input type="radio" asp-for="IsStartNewGroupMeeting" value="true" />
+                        <span>👥 Bắt đầu cuộc họp nhóm</span>
+                    </label>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label asp-for="Name">Tên lịch hẹn</label>
                 <input asp-for="Name" class="form-control" placeholder="VD: Sprint Planning" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
 
-            <!-- LOCATION -->
             <div class="form-group">
                 <label asp-for="Location">Địa điểm</label>
                 <input asp-for="Location" class="form-control" placeholder="VD: Phòng họp A" />
                 <span asp-validation-for="Location" class="text-danger"></span>
             </div>
 
-            <!-- DATETIME -->
             <div class="form-row">
                 <div class="form-group">
-                    <label>Thời gian bắt đầu</label>
-                    <input name="StartTime"
-                           type="datetime-local"
-                           class="form-control"
-                           value="@Model.StartTime.ToString("yyyy-MM-ddTHH:mm")" />
+                    <label asp-for="StartTime">Thời gian bắt đầu</label>
+                    <input asp-for="StartTime" class="form-control" />
+                    <span asp-validation-for="StartTime" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label>Thời gian kết thúc</label>
-                    <input name="EndTime"
-                           type="datetime-local"
-                           class="form-control"
-                           value="@Model.EndTime.ToString("yyyy-MM-ddTHH:mm")" />
+                    <label asp-for="EndTime">Thời gian kết thúc</label>
+                    <input asp-for="EndTime" class="form-control" />
+                    <span asp-validation-for="EndTime" class="text-danger"></span>
                 </div>
             </div>
 
-            <!-- REMINDER -->
             <div class="checkbox-card">
                 <input asp-for="HasReminder" />
                 <label asp-for="HasReminder">Thêm lời nhắc cho lịch hẹn</label>
@@ -68,11 +76,16 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>Thời gian nhắc</label>
-                    <input name="ReminderTime"
-                           type="datetime-local"
-                           class="form-control"
-                           value="@(Model.ReminderTime.HasValue? Model.ReminderTime.Value.ToString("yyyy-MM-ddTHH:mm") : "")" />
+                    <label asp-for="ReminderMinutesBefore">Nhắc trước</label>
+                    <select asp-for="ReminderMinutesBefore" class="form-control">
+                        <option value="">-- Chọn thời gian --</option>
+                        <option value="5">5 phút</option>
+                        <option value="15">15 phút</option>
+                        <option value="30">30 phút</option>
+                        <option value="60">1 giờ</option>
+                        <option value="1440">1 ngày</option>
+                    </select>
+                    <span asp-validation-for="ReminderMinutesBefore" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
@@ -81,7 +94,6 @@
                 </div>
             </div>
 
-            <!-- CONFLICT -->
             @if (Model.ConflictAppointmentId != null)
             {
                 <div class="checkbox-card warning-box">
@@ -97,52 +109,32 @@
 
                     <div class="meeting-content">
                         <h3>Phát hiện cuộc họp nhóm</h3>
+                        <!-- ĐÃ SỬA: Hiển thị tên nhóm bị trùng -->
                         <p>
-                            Có cuộc họp nhóm trùng với thông tin bạn nhập.
-                            Bạn có muốn tham gia cuộc họp nhóm này không?
+                            Đang có nhóm <strong>'@Model.ConflictGroupMeetingName'</strong> họp tại địa điểm này trong cùng khung giờ.
+                            Bạn có muốn tham gia chung không?
                         </p>
 
-                        <div class="meeting-summary">
-                            <div>
-                                <span>Tên lịch hẹn</span>
-                                <strong>@Model.Name</strong>
-                            </div>
-
-                            <div>
-                                <span>Bắt đầu</span>
-                                <strong>@Model.StartTime.ToString("dd/MM/yyyy HH:mm")</strong>
-                            </div>
-
-                            <div>
-                                <span>Kết thúc</span>
-                                <strong>@Model.EndTime.ToString("dd/MM/yyyy HH:mm")</strong>
-                            </div>
-                        </div>
-
-                        <div class="meeting-actions">
-                            <button type="submit"
-                                    name="JoinGroupMeeting"
-                                    value="true"
-                                    class="btn-join">
+                        <div class="meeting-actions" style="margin-top: 15px;">
+                            <button type="submit" name="JoinGroupMeeting" value="true" class="btn-join" style="padding: 10px 20px; background: #0d6efd; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px;">
                                 Đồng ý tham gia
                             </button>
 
-                            <button type="submit"
-                                    name="JoinGroupMeeting"
-                                    value="false"
-                                    class="btn-skip">
-                                Không, tạo lịch hẹn riêng
+                            <button type="submit" name="JoinGroupMeeting" value="false" class="btn-skip" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                                Không, tiếp tục tạo
                             </button>
                         </div>
                     </div>
                 </div>
             }
-
-            <!-- ACTION -->
-            <div class="form-actions">
-                <button type="submit" class="btn-dark">Lưu lịch hẹn</button>
-                <a asp-action="Index" class="btn-light">Quay lại</a>
-            </div>
+            else
+            {
+                <!-- ĐÃ SỬA: Chỉ hiện nút "Lưu lịch hẹn" gốc khi KHÔNG CÓ bảng hỏi nhóm -->
+                <div class="form-actions mt-4">
+                    <button type="submit" class="btn-dark">Lưu lịch hẹn</button>
+                    <a asp-action="Index" class="btn-light">Quay lại</a>
+                </div>
+            }
         </form>
     </div>
 </div>

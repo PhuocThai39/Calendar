@@ -1,0 +1,108 @@
+﻿@model CalendarAppointmentApp.ViewModels.AddAppointmentViewModel
+
+@{
+    ViewData["Title"] = "Chỉnh sửa lịch hẹn";
+}
+
+<div class="page-center">
+    <div class="modern-form-card">
+        <div class="form-title">
+            <h1>Chỉnh sửa lịch hẹn</h1>
+            <p>Cập nhật lại thông tin cuộc hẹn của bạn.</p>
+        </div>
+
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert warning">@TempData["Warning"]</div>
+        }
+
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
+            <input type="hidden" asp-for="ConflictAppointmentId" />
+            <!-- ĐÃ THÊM: Giữ trạng thái để Controller biết đây là Lịch cá nhân hay Lịch nhóm -->
+            <input type="hidden" asp-for="IsGroupEdit" />
+
+            <div class="form-group">
+                <label asp-for="Name">Tên lịch hẹn</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Location">Địa điểm</label>
+                <input asp-for="Location" class="form-control" />
+                <span asp-validation-for="Location" class="text-danger"></span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="StartTime">Bắt đầu</label>
+                    <input asp-for="StartTime" class="form-control" />
+                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="EndTime">Kết thúc</label>
+                    <input asp-for="EndTime" class="form-control" />
+                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- ĐÃ ĐIỀU CHỈNH: Chỉ hiển thị khối Nhắc nhở nếu ĐÓ LÀ LỊCH CÁ NHÂN -->
+            @if (!Model.IsGroupEdit)
+            {
+                <div class="checkbox-card">
+                    <input asp-for="HasReminder" />
+                    <label asp-for="HasReminder">Cập nhật lời nhắc</label>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="ReminderMinutesBefore">Nhắc trước (phút)</label>
+                        <select asp-for="ReminderMinutesBefore" class="form-control">
+                            <option value="">-- Không chọn --</option>
+                            <option value="5">5 phút</option>
+                            <option value="15">15 phút</option>
+                            <option value="30">30 phút</option>
+                            <option value="60">1 giờ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="ReminderMessage">Nội dung</label>
+                        <input asp-for="ReminderMessage" class="form-control" />
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div style="margin-top: 20px; padding: 15px; background: #e0f2fe; border-radius: 8px; color: #0284c7; font-size: 14px;">
+                    👥 <strong>Lưu ý:</strong> Việc thay đổi thời gian/địa điểm của Cuộc họp nhóm sẽ áp dụng chung cho tất cả các thành viên đang tham gia.
+                </div>
+            }
+
+            @if (Model.ConflictAppointmentId != null)
+            {
+                <div class="checkbox-card warning-box">
+                    <input asp-for="ReplaceOldAppointment" />
+                    <label asp-for="ReplaceOldAppointment">Xác nhận ghi đè lịch trùng</label>
+                </div>
+            }
+
+            <div class="form-actions mt-4">
+                <button type="submit" class="btn-dark">Lưu thay đổi</button>
+                
+                <!-- ĐÃ ĐIỀU CHỈNH: Thêm tham số isGroup để nút Hủy quay lại đúng trang -->
+                <a asp-action="Details"
+                       asp-route-id="@ViewContext.RouteData.Values["id"]"
+                       asp-route-isGroup="@Model.IsGroupEdit"
+                       class="btn-light">
+                    Hủy bỏ
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

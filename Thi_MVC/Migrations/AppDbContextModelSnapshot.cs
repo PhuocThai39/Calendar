@@ -17,7 +17,7 @@ namespace CalendarAppointmentApp.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -79,6 +79,16 @@ namespace CalendarAppointmentApp.Migrations
                         {
                             Id = 1,
                             UserId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            UserId = 3
                         });
                 });
 
@@ -92,6 +102,10 @@ namespace CalendarAppointmentApp.Migrations
 
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -146,8 +160,8 @@ namespace CalendarAppointmentApp.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                    b.Property<DateTime>("Time")
-                        .HasColumnType("datetime2");
+                    b.Property<int>("MinutesBefore")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -169,12 +183,19 @@ namespace CalendarAppointmentApp.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("PhoneNumber")
+                    b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
 
                     b.ToTable("Users");
 
@@ -182,8 +203,23 @@ namespace CalendarAppointmentApp.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "Demo User",
-                            PhoneNumber = "0123456789"
+                            Name = "Nguyên Khang",
+                            Password = "123",
+                            Username = "khang"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Xuân Mạnh",
+                            Password = "123",
+                            Username = "manh"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Quốc Trung",
+                            Password = "123",
+                            Username = "trung"
                         });
                 });
 

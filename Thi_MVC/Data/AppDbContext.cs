@@ -20,9 +20,15 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>()
+            .HasIndex(u => u.Username)
+            .IsUnique();
+
+        // 2. Cấu hình các mối quan hệ (Relationships) & Cascade Delete
+        modelBuilder.Entity<User>()
             .HasOne(u => u.Calendar)
             .WithOne(c => c.User)
-            .HasForeignKey<Calendar>(c => c.UserId);
+            .HasForeignKey<Calendar>(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade); // Xóa User tự động xóa Calendar
 
         modelBuilder.Entity<Calendar>()
             .HasMany(c => c.Appointments)
@@ -36,31 +42,34 @@ public class AppDbContext : DbContext
             .HasForeignKey(r => r.AppointmentId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Khóa chính kép cho bảng trung gian GroupMeetingParticipant
         modelBuilder.Entity<GroupMeetingParticipant>()
             .HasKey(x => new { x.UserId, x.GroupMeetingId });
 
         modelBuilder.Entity<GroupMeetingParticipant>()
             .HasOne(x => x.User)
             .WithMany(u => u.GroupMeetingParticipants)
-            .HasForeignKey(x => x.UserId);
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<GroupMeetingParticipant>()
             .HasOne(x => x.GroupMeeting)
             .WithMany(g => g.Participants)
-            .HasForeignKey(x => x.GroupMeetingId);
+            .HasForeignKey(x => x.GroupMeetingId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<User>().HasData(new User
-        {
-            Id = 1,
-            Name = "Demo User",
-            PhoneNumber = "0123456789"
-        });
+        // 3. Dữ liệu mẫu khởi tạo (Seed Data)
+        modelBuilder.Entity<User>().HasData(
+        new User { Id = 1, Name = "Nguyên Khang", Username = "khang", Password = "123" },
+        new User { Id = 2, Name = "Xuân Mạnh", Username = "manh", Password = "123" },
+        new User { Id = 3, Name = "Quốc Trung", Username = "trung", Password = "123" }
+    );
 
-        modelBuilder.Entity<Calendar>().HasData(new Calendar
-        {
-            Id = 1,
-            UserId = 1
-        });
+        modelBuilder.Entity<Calendar>().HasData(
+            new Calendar { Id = 1, UserId = 1 },
+            new Calendar { Id = 2, UserId = 2 },
+            new Calendar { Id = 3, UserId = 3 }
+        );
 
         modelBuilder.Entity<GroupMeeting>().HasData(new GroupMeeting
         {
