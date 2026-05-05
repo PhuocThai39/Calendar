@@ -144,7 +144,6 @@ public class AppointmentsController : Controller
         if (vm.HasReminder && vm.ReminderMinutesBefore == null) ModelState.AddModelError("ReminderMinutesBefore", "Vui lòng chọn khoảng thời gian nhắc trước.");
         if (!ModelState.IsValid) return View(vm);
 
-        // 2. Tìm hoặc tạo mới Calendar cho User hiện tại
         var calendar = await _context.Calendars.Include(c => c.Appointments).FirstOrDefaultAsync(c => c.UserId == CurrentUserId.Value);
         if (calendar == null)
         {
@@ -153,24 +152,65 @@ public class AppointmentsController : Controller
             await _context.SaveChangesAsync();
         }
 
-        // 3. LUÔN kiểm tra xem giờ đó có nhóm nào đang họp không
-        var conflictGroupMeeting = await _context.GroupMeetings
+        // ĐÃ THÊM MỚI: 2. Kiểm tra xem User có đang vướng lịch HỌP NHÓM nào khác không (Cá nhân vs Nhóm / Nhóm vs Nhóm)
+        var busyGroup = await _context.GroupMeetingParticipants
+            .Include(p => p.GroupMeeting)
+            .FirstOrDefaultAsync(p => p.UserId == CurrentUserId.Value &&
+                                      p.GroupMeeting.StartTime < vm.EndTime &&
+                                      vm.StartTime < p.GroupMeeting.EndTime);
+
+        if (busyGroup != null)
+        {
+            // Trừ khi họ đang bấm Join vào CHÍNH cái nhóm đó 
+            if (!(vm.JoinGroupMeeting == true && vm.MatchingGroupMeetingId == busyGroup.GroupMeetingId))
+            {
+                // ĐÃ SỬA: Hiển thị đầy đủ Ngày/Tháng/Năm để user biết có phải lịch qua ngày không
+                ModelState.AddModelError(string.Empty, $"Trùng lịch! Bạn đang có lịch họp nhóm '{busyGroup.GroupMeeting.Name}' từ {busyGroup.GroupMeeting.StartTime:dd/MM/yyyy HH:mm} đến {busyGroup.GroupMeeting.EndTime:dd/MM/yyyy HH:mm}. Bạn không thể ghi đè lịch nhóm, vui lòng đổi thời gian khác.");
+                return View(vm);
+            }
+        }
+
+        // 3. Kiểm tra Trùng lịch CÁ NHÂN (Cá nhân vs Cá nhân / Nhóm vs Cá nhân)
+        var conflictAppointment = await _context.Appointments
+            .FirstOrDefaultAsync(a => a.CalendarId == calendar.Id && a.StartTime < vm.EndTime && vm.StartTime < a.EndTime);
+
+        if (conflictAppointment != null && !vm.ReplaceOldAppointment)
+        {
+            ModelState.Clear();
+            vm.ConflictAppointmentId = conflictAppointment.Id;
+            TempData["Warning"] = $"Bạn đã có lịch hẹn cá nhân '{conflictAppointment.Name}' trong khoảng thời gian này. Hãy xác nhận ghi đè hoặc đổi thời gian khác.";
+            return View(vm);
+        }
+
+        // 4. GỢI Ý JOIN NHÓM (Dựa theo Địa điểm và Thời gian)
+        var suggestGroup = await _context.GroupMeetings
             .FirstOrDefaultAsync(g =>
                 g.Location.ToLower() == vm.Location.ToLower() &&
                 g.StartTime < vm.EndTime && vm.StartTime < g.EndTime);
 
-        // 4. XỬ LÝ NẾU CÓ TRÙNG NHÓM
-        if (conflictGroupMeeting != null && !vm.JoinGroupMeeting.HasValue)
+        if (suggestGroup != null && !vm.JoinGroupMeeting.HasValue)
         {
-            // ĐÃ THÊM: Dòng lệnh ma thuật để xóa trí nhớ cũ của Form, ép giao diện nhận ID mới
-            ModelState.Clear();
-
-            vm.MatchingGroupMeetingId = conflictGroupMeeting.Id;
-            vm.ConflictGroupMeetingName = conflictGroupMeeting.Name;
-            return View(vm);
+            // Tránh gợi ý nếu User đã ở trong nhóm đó rồi
+            var alreadyIn = await _context.GroupMeetingParticipants.AnyAsync(p => p.UserId == CurrentUserId.Value && p.GroupMeetingId == suggestGroup.Id);
+            if (!alreadyIn)
+            {
+                ModelState.Clear();
+                vm.MatchingGroupMeetingId = suggestGroup.Id;
+                vm.ConflictGroupMeetingName = suggestGroup.Name;
+                return View(vm);
+            }
         }
 
-        // 5. Khang đồng ý gia nhập nhóm đã có (Lúc này ID đã được truyền về thành công)
+        // --- NẾU VƯỢT QUA HẾT CÁC BƯỚC TRÊN, TIẾN HÀNH LƯU VÀO DATABASE ---
+
+        // Xóa lịch cá nhân cũ nếu có check Ghi đè
+        if (conflictAppointment != null && vm.ReplaceOldAppointment)
+        {
+            _context.Appointments.Remove(conflictAppointment);
+            await _context.SaveChangesAsync();
+        }
+
+        // 5. Xử lý Join
         if (vm.MatchingGroupMeetingId.HasValue && vm.JoinGroupMeeting == true)
         {
             bool alreadyJoined = await _context.GroupMeetingParticipants.AnyAsync(x => x.UserId == CurrentUserId.Value && x.GroupMeetingId == vm.MatchingGroupMeetingId.Value);
@@ -179,31 +219,11 @@ public class AppointmentsController : Controller
                 _context.GroupMeetingParticipants.Add(new GroupMeetingParticipant { UserId = CurrentUserId.Value, GroupMeetingId = vm.MatchingGroupMeetingId.Value });
                 await _context.SaveChangesAsync();
             }
-            TempData["Success"] = $"Bạn đã tham gia cuộc họp nhóm thành công.";
-            return RedirectToAction(nameof(Index)); // Xong việc là quay về luôn, KHÔNG tạo lịch cá nhân nữa!
+            TempData["Success"] = "Bạn đã tham gia cuộc họp nhóm thành công.";
+            return RedirectToAction(nameof(Index));
         }
 
-        // 6. Kiểm tra Trùng lịch cá nhân
-        var conflictAppointment = await _context.Appointments
-            .FirstOrDefaultAsync(a => a.CalendarId == calendar.Id && a.StartTime < vm.EndTime && vm.StartTime < a.EndTime);
-
-        if (conflictAppointment != null && !vm.ReplaceOldAppointment)
-        {
-            // ĐÃ THÊM: Cũng áp dụng lệnh xóa trí nhớ cho trường hợp ghi đè lịch cá nhân
-            ModelState.Clear();
-
-            vm.ConflictAppointmentId = conflictAppointment.Id;
-            TempData["Warning"] = $"Bạn đã có lịch hẹn '{conflictAppointment.Name}' trong khoảng thời gian này. Hãy chọn thay thế lịch cũ hoặc đổi thời gian khác.";
-            return View(vm);
-        }
-
-        if (conflictAppointment != null && vm.ReplaceOldAppointment)
-        {
-            _context.Appointments.Remove(conflictAppointment);
-            await _context.SaveChangesAsync();
-        }
-
-        // 7. TẠO MỚI (CHỌN "BẮT ĐẦU NHÓM MỚI" HOẶC "LỊCH CÁ NHÂN")
+        // 6. Xử lý tạo mới
         if (vm.IsStartNewGroupMeeting)
         {
             var newGroup = new GroupMeeting { Name = vm.Name, Location = vm.Location, StartTime = vm.StartTime, EndTime = vm.EndTime };
@@ -419,13 +439,32 @@ public class AppointmentsController : Controller
             var appointment = await _context.Appointments.Include(a => a.Reminders).FirstOrDefaultAsync(a => a.Id == id);
             if (appointment == null) return NotFound();
 
-            // Kiểm tra trùng lịch cá nhân khác
+            // K.Tra xem có lấn vào lịch HỌP NHÓM nào không
+            var busyGroup = await _context.GroupMeetingParticipants
+                .Include(p => p.GroupMeeting)
+                .FirstOrDefaultAsync(p => p.UserId == CurrentUserId.Value &&
+                                          p.GroupMeeting.StartTime < vm.EndTime &&
+                                          vm.StartTime < p.GroupMeeting.EndTime);
+            if (busyGroup != null)
+            {
+                // ĐÃ SỬA: Thêm thời gian cụ thể
+                ModelState.AddModelError(string.Empty, $"Trùng lịch! Bạn đang có lịch họp nhóm '{busyGroup.GroupMeeting.Name}' (từ {busyGroup.GroupMeeting.StartTime:dd/MM/yyyy HH:mm} đến {busyGroup.GroupMeeting.EndTime:dd/MM/yyyy HH:mm}). Không thể dời lịch cá nhân vào đây.");
+                return View(vm);
+            }
+
+            // K.Tra trùng lịch CÁ NHÂN khác
             var conflict = await _context.Appointments.FirstOrDefaultAsync(a => a.Id != id && a.CalendarId == appointment.CalendarId && a.StartTime < vm.EndTime && vm.StartTime < a.EndTime);
             if (conflict != null && !vm.ReplaceOldAppointment)
             {
                 vm.ConflictAppointmentId = conflict.Id;
                 TempData["Warning"] = $"Trùng lịch với '{conflict.Name}'. Bạn có muốn ghi đè không?";
                 return View(vm);
+            }
+
+            // ĐÃ SỬA: Thực thi xóa lịch cũ nếu User đồng ý Ghi đè
+            if (conflict != null && vm.ReplaceOldAppointment)
+            {
+                _context.Appointments.Remove(conflict);
             }
 
             appointment.Name = vm.Name; appointment.Location = vm.Location;
@@ -443,6 +482,20 @@ public class AppointmentsController : Controller
             var groupMeeting = await _context.GroupMeetings.FirstOrDefaultAsync(g => g.Id == id);
             if (groupMeeting == null) return NotFound();
 
+            // K.Tra xem có lấn vào lịch HỌP NHÓM KHÁC không
+            var busyGroup = await _context.GroupMeetingParticipants
+                .Include(p => p.GroupMeeting)
+                .FirstOrDefaultAsync(p => p.UserId == CurrentUserId.Value &&
+                                          p.GroupMeetingId != id && // Bỏ qua chính nhóm đang sửa
+                                          p.GroupMeeting.StartTime < vm.EndTime &&
+                                          vm.StartTime < p.GroupMeeting.EndTime);
+            if (busyGroup != null)
+            {
+                // ĐÃ SỬA: Thêm thời gian cụ thể
+                ModelState.AddModelError(string.Empty, $"Trùng lịch! Bạn đang tham gia một nhóm khác ('{busyGroup.GroupMeeting.Name}' từ {busyGroup.GroupMeeting.StartTime:dd/MM/yyyy HH:mm} đến {busyGroup.GroupMeeting.EndTime:dd/MM/yyyy HH:mm}). Không thể dời lịch.");
+                return View(vm);
+            }
+
             groupMeeting.Name = vm.Name; groupMeeting.Location = vm.Location;
             groupMeeting.StartTime = vm.StartTime; groupMeeting.EndTime = vm.EndTime;
         }
@@ -450,43 +503,6 @@ public class AppointmentsController : Controller
         await _context.SaveChangesAsync();
         TempData["Success"] = "Cập nhật lịch hẹn thành công!";
 
-        // Quay lại đúng trang Details của loại lịch tương ứng
         return RedirectToAction(nameof(Details), new { id = id, isGroup = vm.IsGroupEdit });
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> Notifications()
-    {
-        var now = DateTime.Now;
-        var calendar = await _context.Calendars
-            .FirstOrDefaultAsync(c => c.UserId == CurrentUserId);
-
-        var activeNotifications = new List<Appointment>();
-
-        if (calendar != null)
-        {
-            // 1. Lấy tất cả lịch hẹn CÓ LỜI NHẮC của User này
-            var appointments = await _context.Appointments
-                .Include(a => a.Reminders)
-                .Where(a => a.CalendarId == calendar.Id && a.Reminders.Any())
-                .ToListAsync();
-
-            // 2. Lọc ra những lời nhắc ĐANG TỚI HẠN
-            activeNotifications = appointments.Where(a =>
-            {
-                var reminder = a.Reminders.FirstOrDefault();
-                if (reminder == null) return false;
-
-                // Tính giờ chuông kêu = Giờ bắt đầu trừ đi số phút nhắc trước
-                var triggerTime = a.StartTime.AddMinutes(-reminder.MinutesBefore);
-
-                // Điều kiện: Chuông đã kêu (triggerTime <= hiện tại) VÀ Lịch chưa kết thúc
-                return triggerTime <= now && a.EndTime >= now;
-            })
-            .OrderByDescending(a => a.StartTime) // Sắp xếp cái nào mới nhất lên đầu
-            .ToList();
-        }
-
-        return View(activeNotifications);
     }
 }
