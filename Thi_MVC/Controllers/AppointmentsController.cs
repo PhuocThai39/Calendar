@@ -505,4 +505,42 @@ public class AppointmentsController : Controller
 
         return RedirectToAction(nameof(Details), new { id = id, isGroup = vm.IsGroupEdit });
     }
+
+    // ... (Hàm Edit ở trên) ...
+
+    [HttpGet]
+    public async Task<IActionResult> Notifications()
+    {
+        var now = DateTime.Now;
+        var calendar = await _context.Calendars
+            .FirstOrDefaultAsync(c => c.UserId == CurrentUserId);
+
+        var activeNotifications = new List<Appointment>();
+
+        if (calendar != null)
+        {
+            // 1. Lấy tất cả lịch hẹn CÓ LỜI NHẮC của User này
+            var appointments = await _context.Appointments
+                .Include(a => a.Reminders)
+                .Where(a => a.CalendarId == calendar.Id && a.Reminders.Any())
+                .ToListAsync();
+
+            // 2. Lọc ra những lời nhắc ĐANG TỚI HẠN
+            activeNotifications = appointments.Where(a =>
+            {
+                var reminder = a.Reminders.FirstOrDefault();
+                if (reminder == null) return false;
+
+                // Tính giờ chuông kêu = Giờ bắt đầu trừ đi số phút nhắc trước
+                var triggerTime = a.StartTime.AddMinutes(-reminder.MinutesBefore);
+
+                // Điều kiện: Chuông đã kêu (triggerTime <= hiện tại) VÀ Lịch chưa kết thúc
+                return triggerTime <= now && a.EndTime >= now;
+            })
+            .OrderByDescending(a => a.StartTime) // Sắp xếp cái nào mới nhất lên đầu
+            .ToList();
+        }
+
+        return View(activeNotifications);
+    }
 }
