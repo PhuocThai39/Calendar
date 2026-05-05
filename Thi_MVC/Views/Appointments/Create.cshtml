@@ -6,11 +6,14 @@
 
 <div class="page-center">
     <div class="modern-form-card">
+
+        <!-- TITLE -->
         <div class="form-title">
             <h1>Thêm lịch hẹn</h1>
             <p>Nhập thông tin lịch hẹn mới của bạn.</p>
         </div>
 
+        <!-- ALERT -->
         @if (TempData["Warning"] != null)
         {
             <div class="alert warning">@TempData["Warning"]</div>
@@ -21,8 +24,11 @@
             <div class="alert info">@TempData["Question"]</div>
         }
 
+        <!-- FORM -->
         <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- 🔥 HIỆN TOÀN BỘ LỖI -->
+            <div asp-validation-summary="All" class="validation-box"></div>
 
             <input type="hidden" asp-for="ConflictAppointmentId" />
             <input type="hidden" asp-for="MatchingGroupMeetingId" />
@@ -56,17 +62,23 @@
             </div>
 
             <div class="form-row">
+
                 <div class="form-group">
+
                     <label asp-for="StartTime">Thời gian bắt đầu</label>
                     <input asp-for="StartTime" class="form-control" />
+
                     <span asp-validation-for="StartTime" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
+
                     <label asp-for="EndTime">Thời gian kết thúc</label>
                     <input asp-for="EndTime" class="form-control" />
+
                     <span asp-validation-for="EndTime" class="text-danger"></span>
                 </div>
+
             </div>
 
             <div class="checkbox-card">
@@ -75,7 +87,9 @@
             </div>
 
             <div class="form-row">
+
                 <div class="form-group">
+
                     <label asp-for="ReminderMinutesBefore">Nhắc trước</label>
                     <select asp-for="ReminderMinutesBefore" class="form-control">
                         <option value="">-- Chọn thời gian --</option>
@@ -86,29 +100,36 @@
                         <option value="1440">1 ngày</option>
                     </select>
                     <span asp-validation-for="ReminderMinutesBefore" class="text-danger"></span>
+
                 </div>
 
                 <div class="form-group">
                     <label asp-for="ReminderMessage">Nội dung nhắc</label>
                     <input asp-for="ReminderMessage" class="form-control" placeholder="VD: Chuẩn bị tài liệu" />
                 </div>
+
             </div>
 
             @if (Model.ConflictAppointmentId != null)
             {
                 <div class="checkbox-card warning-box">
                     <input asp-for="ReplaceOldAppointment" />
-                    <label asp-for="ReplaceOldAppointment">Thay thế lịch hẹn cũ</label>
+                    <label asp-for="ReplaceOldAppointment">
+                        Thay thế lịch hẹn cũ
+                    </label>
                 </div>
             }
 
+            <!-- GROUP MEETING -->
             @if (Model.MatchingGroupMeetingId != null)
             {
                 <div class="meeting-confirm-box">
+
                     <div class="meeting-icon">👥</div>
 
                     <div class="meeting-content">
                         <h3>Phát hiện cuộc họp nhóm</h3>
+
                         <!-- ĐÃ SỬA: Hiển thị tên nhóm bị trùng -->
                         <p>
                             Đang có nhóm <strong>'@Model.ConflictGroupMeetingName'</strong> họp tại địa điểm này trong cùng khung giờ.
@@ -122,7 +143,9 @@
 
                             <button type="submit" name="JoinGroupMeeting" value="false" class="btn-skip" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer;">
                                 Không, tiếp tục tạo
+
                             </button>
+
                         </div>
                     </div>
                 </div>

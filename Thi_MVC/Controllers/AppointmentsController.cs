@@ -138,6 +138,7 @@ public class AppointmentsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(AddAppointmentViewModel vm)
     {
+
         // 1. Kiểm tra tính hợp lệ cơ bản
         if (vm.StartTime < DateTime.Now) ModelState.AddModelError("StartTime", "Thời gian bắt đầu không được nằm trong quá khứ.");
         if (vm.EndTime <= vm.StartTime) ModelState.AddModelError("EndTime", "Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.");
@@ -158,6 +159,7 @@ public class AppointmentsController : Controller
             .FirstOrDefaultAsync(g =>
                 g.Location.ToLower() == vm.Location.ToLower() &&
                 g.StartTime < vm.EndTime && vm.StartTime < g.EndTime);
+
 
         // 4. XỬ LÝ NẾU CÓ TRÙNG NHÓM
         if (conflictGroupMeeting != null && !vm.JoinGroupMeeting.HasValue)
